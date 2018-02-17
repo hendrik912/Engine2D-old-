@@ -30,6 +30,8 @@ class SteeringBehavior:
         self.wander_distance = 40.0
         self.wander_jitter = 5
 
+        # test test test
+
         # stuff for the wander behavior
         theta = random.uniform(0, 2*math.pi)
         # create a vector to a target position on the wander circle
