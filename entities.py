@@ -11,11 +11,16 @@ class Entity:
 
     nextValidID = 0
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, pts, scale=1.0):
         self.id = self.set_id()
         self.set_id()
         self.parent = None
         self.children = {}
+
+        self.points = pts
+        self.transformed_pts = None
+        self.scale = scale
+        self.radius = None
 
         self.pos = np.array([x, y], dtype=np.float32)
         self.up = np.array(game_state.UP, dtype=np.float32)
@@ -26,6 +31,16 @@ class Entity:
         self.render_component = None
         self.input_component = None
 
+    def set_scale(self, scale):
+        self.scale = scale
+        self.radius = None
+        self.bounding_radius()
+
+    def bounding_radius(self):
+        if self.radius is None:
+            self.radius = self.scale * utility.max_length_vec(self.points)
+        return self.radius
+
     @staticmethod
     def set_id():
         Entity.nextValidID += 1
@@ -33,26 +48,11 @@ class Entity:
 
     def render(self, surface, scene, camera_offset, debug=False):
 
-        entry = scene.transformed_entity_pts[self.id]
-
-        ##########################################################################################################
-        pos = copy.deepcopy(entry[0])
-        pts = entry[1]
+        pos = self.transformed_pts[0]
+        pts = self.transformed_pts[1]
 
         if self.render_component is not None:
             self.render_component.update(surface, pos, pts, self.up, self.side, camera_offset, debug)
-
-        """
-        if debug:
-            start_pos = (int(pos[0] + camera_offset[0]), int(pos[1] + camera_offset[1]))
-            for key, child in self.children.items():
-                child_pos = scene.transformed_entity_pts[child.id][0]
-
-                end_pos = (int(child_pos[0] + camera_offset[0]),
-                           int(child_pos[1] + camera_offset[1]))
-
-                pygame.draw.line(surface, colors.GRAY, start_pos, end_pos)
-        """
 
     def set_parent(self, entity):
         self.remove_parent()
@@ -80,12 +80,12 @@ class Entity:
 
 #########################################################################################
 
-def calculate_transformed_pts_topdown(entity, transformations, transformation_map):
+def calculate_transformed_pts_top_down(entity, transformations):
 
     pos = [entity.pos[0], entity.pos[1]]
-    pts = copy.deepcopy(entity.render_component.points)
+    pts = copy.deepcopy(entity.points)
 
-    utility.scale_points(pts, entity.render_component.scale)
+    utility.scale_points(pts, entity.scale)
 
     up = [entity.up[0], entity.up[1]]
     side = [entity.side[0], entity.side[1]]
@@ -111,13 +111,13 @@ def calculate_transformed_pts_topdown(entity, transformations, transformation_ma
     for key, child in entity.children.items():
         if count > 0:
             trans_cpy = copy.deepcopy(transformations)
-            calculate_transformed_pts_topdown(child, trans_cpy, transformation_map)
+            calculate_transformed_pts_top_down(child, trans_cpy)
         else:
-            calculate_transformed_pts_topdown(child, transformations, transformation_map)
+            calculate_transformed_pts_top_down(child, transformations)
         count += 1
 
     utility.rotate_points(pts, up, side)
-    transformation_map[entity.id] = [pos, pts]
+    entity.transformed_pts = [pos, pts]
 
 #########################################################################################
 

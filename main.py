@@ -13,6 +13,8 @@ clock = pygame.time.Clock()
 
 """
 
+bounding radius
+
 - steering behavior
 
 - containment collision anstatt check_border

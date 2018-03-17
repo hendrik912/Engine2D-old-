@@ -80,20 +80,13 @@ class CollisionComponent(BaseComponent):
 
 class RenderComponent:
 
-    def __init__(self, owner, pts, scale=1.0, line_color=colors.BLACK, fill_color=colors.GRAY, outline=True, fill=True):
+    def __init__(self, owner, line_color=colors.BLACK, fill_color=colors.GRAY, outline=True, fill=True):
         self.owner = owner
-        self.points = pts
-        self.scale = scale
+
         self.line_color = line_color
         self.fill_color = fill_color
         self.fill = fill
         self.outline = outline
-        self.radius = None
-
-    def bounding_radius(self):
-        if self.radius is None:
-            self.radius = self.scale * utility.max_length_vec(self.points)
-        return self.radius
 
     def update(self, surface, pos, pts, v_up, v_side, offset, debug=False):
         if not debug:
@@ -104,7 +97,7 @@ class RenderComponent:
         final_pos[1] *= game_state.ZOOM
         final_pos[0] += offset[0]
         final_pos[1] += offset[1]
-        radius = self.bounding_radius() * game_state.ZOOM
+        radius = self.owner.bounding_radius() * game_state.ZOOM
 
         pygame.draw.circle(surface, colors.GRAY, (int(final_pos[0]), int(final_pos[1])), int(radius), 1)
 
@@ -146,8 +139,8 @@ class CircleRenderComponent(RenderComponent):
 
 class PolygonRenderComponent(RenderComponent):
 
-    def __init__(self, owner, pts, scale=1.0, line_color=colors.BLACK, fill_color=colors.GRAY, fill=True):
-        super(PolygonRenderComponent, self).__init__(owner, pts, scale, line_color, fill_color, fill)
+    def __init__(self, owner, line_color=colors.BLACK, fill_color=colors.GRAY, fill=True):
+        super(PolygonRenderComponent, self).__init__(owner, line_color, fill_color, fill)
 
     def update(self, surface, pos, pts, v_up, v_side, offset, debug=False):
         final_pos = [pos[0], pos[1]]
@@ -272,20 +265,6 @@ class PlayerInputComponent(InputComponent):
                 self.turn = self.max_turn_rate / 2
 
 
-class TestInputComponent(InputComponent):
-
-    count = 0
-
-    def __init__(self, owner):
-        super(TestInputComponent, self).__init__(owner)
-
-    def update(self, time_elapsed):
-
-        TestInputComponent.count += 1
-
-        super(TestInputComponent, self).update(time_elapsed)
-
-
 class SteeringBehaviorInputComponent(BaseComponent):
 
     def __init__(self, owner):
@@ -293,8 +272,13 @@ class SteeringBehaviorInputComponent(BaseComponent):
         self.steering = steering_behavior.SteeringBehavior(self.owner)
         self.steering.wander_on()
 
-    def update(self, scene):
-        self.owner.apply_force(self.steering.calculate())
+    def update(self, time_elapsed):
+        super(SteeringBehaviorInputComponent, self).update(time_elapsed)
+
+        print(self.steering.calculate())
+
+
+   #     self.owner.apply_force(self.steering.calculate())
 
 
 class CameraComponent(BaseComponent):
@@ -302,7 +286,7 @@ class CameraComponent(BaseComponent):
         super(CameraComponent, self).__init__(owner)
 
     def update(self, scene):
-        pos = scene.transformed_entity_pts[self.owner.id][0]
+        pos = self.owner.transformed_pts[0]
 
         scene_width = scene.width * game_state.ZOOM
         scene_height = scene.height * game_state.ZOOM

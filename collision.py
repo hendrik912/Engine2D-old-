@@ -100,10 +100,10 @@ def circle_circle_collision(a, b, scene):
 
 def circle_circle_overlap(a, b, scene):
 
-    a_pos = scene.transformed_entity_pts[a.id][0]
-    b_pos = scene.transformed_entity_pts[b.id][0]
+    a_pos = a.transformed_pts[0]
+    b_pos = b.transformed_pts[0]
 
-    r = a.render_component.bounding_radius() + b.render_component.bounding_radius()
+    r = a.bounding_radius() + b.bounding_radius()
     r *= r
 
     dis = (a_pos[0] - b_pos[0]) * (a_pos[0] - b_pos[0]) + \
@@ -134,13 +134,11 @@ def sat_collision(a, b, scene):
     a_vecs = []
     b_vecs = []
 
-    a_entry = scene.transformed_entity_pts[a.id]
-    a_pos = a_entry[0]
-    a_pts = a_entry[1]
+    a_pos = a.transformed_pts[0]
+    a_pts = a.transformed_pts[1]
 
-    b_entry = scene.transformed_entity_pts[b.id]
-    b_pos = b_entry[0]
-    b_pts = b_entry[1]
+    b_pos = b.transformed_pts[0]
+    b_pts = b.transformed_pts[1]
 
     # muss hier wirklich noch die position hinzuaddiert werden?
 
@@ -238,7 +236,7 @@ def check_terrain(entity, terrain):
 def check_edges(entity, width, height):
 
     if entity.move_component is not None:
-        r = entity.render_component.bounding_radius()
+        r = entity.bounding_radius()
     else:
         return
 

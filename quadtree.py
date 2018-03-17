@@ -78,12 +78,12 @@ class QuadTree:
 
         index = None
 
-        pos = self.scene.transformed_entity_pts[entity.id][0]
+        pos = entity.transformed_pts[0]
 
         center = (self.bounds[0] + self.bounds[2] / 2,
                   self.bounds[1] + self.bounds[3] / 2)
 
-        radius = entity.render_component.bounding_radius()
+        radius = entity.bounding_radius()
 
 
         entity_bounds = [

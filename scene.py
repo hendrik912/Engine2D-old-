@@ -20,7 +20,8 @@ class Scene:
         self.height = height
         self.camera_offset = [0, 0]
         self.quadtree = quadtree.QuadTree(0, (0, 0, width, height), self)
-        self.transformed_entity_pts = {}
+
+        # self.transformed_entity_pts = {}
 
     def update(self, elapsed_time):
         self.quadtree.clear()
@@ -30,14 +31,21 @@ class Scene:
             # create the transformed points top down
             if entity.parent is None:
 
+                # static and no transformed pts -> create transform pts
+                if (entity.move_component is None and entity.transformed_pts is None) or entity.move_component is not None:
+                    entities.calculate_transformed_pts_top_down(entity, [])
+
+                """
                 # dont transform if the entity is static and already has transformed pts
                 if entity.move_component is None:
                     try:
                         tep = self.transformed_entity_pts[entity.id]
                     except KeyError:
-                        entities.calculate_transformed_pts_topdown(entity, [], self.transformed_entity_pts)
+                        entities.calculate_transformed_pts_top_down(entity, [], self.transformed_entity_pts)
                 else:
-                    entities.calculate_transformed_pts_topdown(entity, [], self.transformed_entity_pts)
+                    entities.calculate_transformed_pts_top_down(entity, [], self.transformed_entity_pts)
+                """
+
             entity.update(self, elapsed_time)
 
         for entity in self.entities:
@@ -139,23 +147,29 @@ def setup(scene):
         [-width / 2, -height / 2],  # tl
     ]
 
-    entity = entities.Entity(1000, 100)
+    pts1 = [
+        [+width / 2, -height / 2],  # tr
+        [0, +height / 1.5],  # br
+        [-width / 2, -height / 2],  # tl
+    ]
+
+    entity = entities.Entity(1000, 100, pts1, 1.2)
     entity.input_component = components.PlayerInputComponent(entity)
-    #entity.render_component = components.PolygonRenderComponent(entity, pts, 1.2)
-    entity.render_component = components.CircleRenderComponent(entity, 10, 10)
+    entity.render_component = components.PolygonRenderComponent(entity)
+    #entity.render_component = components.CircleRenderComponent(entity, 10, 10)
     entity.move_component = components.MoveComponent(entity, 10)
     entity.components[components.CameraComponent] = components.CameraComponent(entity)
-    entity.components[components.GravityComponent] = components.GravityComponent(entity)
+    #entity.components[components.GravityComponent] = components.GravityComponent(entity)
     entity.components[components.FrictionComponent] = components.FrictionComponent(entity, 0.2)
     entity.components[components.CollisionComponent] = components.CollisionComponent(entity)
     scene.add_to_entities(entity)
 
-    entity = entities.Entity(200, 200)
-    #entity.render_component = components.PolygonRenderComponent(entity, pts)
-    entity.render_component = components.CircleRenderComponent(entity, 10, 2)
-    entity.input_component = components.TestInputComponent(entity)
+    entity = entities.Entity(200, 200, pts1)
+    entity.input_component = components.SteeringBehaviorInputComponent(entity)
+    entity.render_component = components.PolygonRenderComponent(entity)
+    #entity.render_component = components.CircleRenderComponent(entity, 10, 2)
     entity.move_component = components.MoveComponent(entity, 10)
-    entity.components[components.GravityComponent] = components.GravityComponent(entity)
+    #entity.components[components.GravityComponent] = components.GravityComponent(entity)
     entity.components[components.FrictionComponent] = components.FrictionComponent(entity, 0.2)
     entity.components[components.CollisionComponent] = components.CollisionComponent(entity)
     scene.add_to_entities(entity)
@@ -172,8 +186,8 @@ def setup(scene):
         [-width / 2, -height / 2],  # tl
     ]
 
-    entity = entities.Entity(width/2, height/2)
-    entity.render_component = components.PolygonRenderComponent(entity, pts)
+    entity = entities.Entity(width/2, height/2, pts)
+    entity.render_component = components.PolygonRenderComponent(entity)
     entity.render_component.fill = False
     scene.add_to_entities(entity)
 
@@ -189,7 +203,7 @@ def setup(scene):
     y_pos = scene.height - 50
     te = terrain.terrain_entity(50, scene.width, 0.1, 200, 200)
     te.pos[1] = y_pos
-    te.pos[0] = te.render_component.bounding_radius() - 20
+    te.pos[0] = te.bounding_radius() - 20
 
     scene.add_to_entities(te)
 

@@ -50,26 +50,26 @@ def terrain_entity(x_step, width, pn_step, pn_step_offset, pn_mag):
     pts = generate_points(pn_step, pn_mag, pn_step_offset, num_pts, x_step, 0)
     points_list = split_into_parts(pts)
 
-    terrain_ent = entities.Entity(0, 0)
+    terrain_ent = entities.Entity(0, 0, points_list[0])
 
-    terrain_ent.render_component = components.PolygonRenderComponent(terrain_ent, points_list[0])
+    terrain_ent.render_component = components.PolygonRenderComponent(terrain_ent)
     terrain_ent.components[components.CollisionComponent] = components.CollisionComponent(terrain_ent)
 
     shift_center(terrain_ent)
-    close_shape(terrain_ent.render_component.points, 50)
+    close_shape(terrain_ent.points, 50)
 
     # die erstellten shapes in entitäten übertragen
     for i in range(1, len(points_list)):
         pts = points_list[i]
-        ent = entities.Entity(0, 0)
-        ent.render_component = components.PolygonRenderComponent(ent, pts)
+        ent = entities.Entity(0, 0, pts)
+        ent.render_component = components.PolygonRenderComponent(ent)
         ent.components[components.CollisionComponent] = components.CollisionComponent(ent)
         ent.set_parent(terrain_ent)
 
         shift_center(ent)
         ent.pos[0] -= x_step
 
-        close_shape(ent.render_component.points, 50)
+        close_shape(ent.points, 50)
     return terrain_ent
 
 
@@ -103,12 +103,12 @@ def close_shape(pts, specific_height=None):
 
 def shift_center(entity):
     # only works if applied before close_shape(...)
-    x_scale = entity.render_component.points[1][0] - entity.render_component.points[0][0]
-    width = (len(entity.render_component.points)-1) * x_scale
-    x_offset = entity.render_component.points[0][0]
+    x_scale = entity.points[1][0] - entity.points[0][0]
+    width = (len(entity.points)-1) * x_scale
+    x_offset = entity.points[0][0]
     entity.pos[0] += width/2 + x_offset   # position mit rotationspunkt in der mitte
 
-    for pt in entity.render_component.points:
+    for pt in entity.points:
         pt[0] -= (width/2 + x_offset)
 
 

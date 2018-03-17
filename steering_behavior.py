@@ -148,7 +148,8 @@ class SteeringBehavior:
         self.wander_target = self.wander_radius * utility.normalize(self.wander_target)
 
         target_local = self.wander_target + np.array([self.wander_distance, 0])
-        utility.rotate_point(target_local, self.agent.side, self.agent.heading)
+        utility.rotate_point(target_local, self.agent.side, self.agent.up)
+
         target_world = self.agent.pos + target_local
 
         """
