@@ -26,8 +26,10 @@ class Scene:
         self.quadtree.clear()
 
         for entity in self.entities:
+
             # create the transformed points top down
             if entity.parent is None:
+
                 # dont transform if the entity is static and already has transformed pts
                 if entity.move_component is None:
                     try:
@@ -139,7 +141,8 @@ def setup(scene):
 
     entity = entities.Entity(1000, 100)
     entity.input_component = components.PlayerInputComponent(entity)
-    entity.render_component = components.PolygonRenderComponent(entity, pts, 1.2)
+    #entity.render_component = components.PolygonRenderComponent(entity, pts, 1.2)
+    entity.render_component = components.CircleRenderComponent(entity, 10, 10)
     entity.move_component = components.MoveComponent(entity, 10)
     entity.components[components.CameraComponent] = components.CameraComponent(entity)
     entity.components[components.GravityComponent] = components.GravityComponent(entity)
@@ -148,7 +151,8 @@ def setup(scene):
     scene.add_to_entities(entity)
 
     entity = entities.Entity(200, 200)
-    entity.render_component = components.PolygonRenderComponent(entity, pts)
+    #entity.render_component = components.PolygonRenderComponent(entity, pts)
+    entity.render_component = components.CircleRenderComponent(entity, 10, 2)
     entity.input_component = components.TestInputComponent(entity)
     entity.move_component = components.MoveComponent(entity, 10)
     entity.components[components.GravityComponent] = components.GravityComponent(entity)

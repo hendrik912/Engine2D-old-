@@ -12,14 +12,8 @@ clock = pygame.time.Clock()
 
 
 """
-- alles auf githhub schieben
-- Circle 
+
 - steering behavior
-- composit shapes
-  - creation
-  - indices?
-  - collision a vs b 
-   alle parts von a gegen alle parts von b
 
 - containment collision anstatt check_border
 - Physics Engine
@@ -28,8 +22,13 @@ Sonstiges:
  - collision detection a posteriori zu a priori umwandeln ? 
  - creator modus
   - punkte, federn, motoren.. 
- - labyrinth
-  
+
+- composit shapes
+  - creation
+  - indices?
+  - collision a vs b 
+   alle parts von a gegen alle parts von b
+   
 Optimierung:
 
 - wiederholte translation in render... gibts irgendeine bessere Lösung?

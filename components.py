@@ -99,18 +99,24 @@ class RenderComponent:
         if not debug:
             return
 
+        final_pos = [pos[0], pos[1]]
+        final_pos[0] *= game_state.ZOOM
+        final_pos[1] *= game_state.ZOOM
+        final_pos[0] += offset[0]
+        final_pos[1] += offset[1]
         radius = self.bounding_radius() * game_state.ZOOM
 
-        pygame.draw.circle(surface, colors.GRAY, (int(pos[0] + offset[0]), int(pos[1] + offset[1])), int(radius), 1)
+        pygame.draw.circle(surface, colors.GRAY, (int(final_pos[0]), int(final_pos[1])), int(radius), 1)
 
-        start_pos = (int(pos[0] + offset[0]), int(pos[1] + offset[1]))
-        end_pos = (int(pos[0] + offset[0] + v_up[0] * radius),
-                   int(pos[1] + offset[1] + v_up[1] * radius))
+        start_pos = (int(final_pos[0]), int(final_pos[1]))
+        end_pos = (int(final_pos[0] + v_up[0] * radius),
+                   int(final_pos[1] + v_up[1] * radius))
 
         pygame.draw.line(surface, colors.GREEN, start_pos, end_pos)
 
-        end_pos = (int(pos[0] + offset[0] + v_side[0] * radius),
-                   int(pos[1] + offset[1] + v_side[1] * radius))
+        end_pos = (int(final_pos[0] + v_side[0] * radius),
+                   int(final_pos[1] + v_side[1] * radius))
+
         pygame.draw.line(surface, colors.TEAL, start_pos, end_pos)
 
 
@@ -118,40 +124,51 @@ class CircleRenderComponent(RenderComponent):
 
     def __init__(self, owner, radius, scale=1.0, line_color=colors.BLACK, fill_color=colors.GRAY, fill=True):
         super(CircleRenderComponent, self).__init__(owner, [[0.0, 0.0], [0.0, radius]], scale, line_color, fill_color, fill)
+        self.fill = fill
 
     def update(self, surface, pos, pts, v_up, v_side, offset, debug=False):
-        super(CircleRenderComponent, self).update(surface, pos, pts, v_up, v_side, offset, debug)
+
+        final_pos = [pos[0], pos[1]]
+        final_pos[0] *= game_state.ZOOM
+        final_pos[1] *= game_state.ZOOM
+        final_pos[0] += offset[0]
+        final_pos[1] += offset[1]
+        radius = self.bounding_radius() * game_state.ZOOM
 
         if self.fill:
-            pygame.draw.circle(surface, self.line_color, (int(pos[0] + offset[0]), int(pos[1] + offset[1])), int(self.radius), 0)
+            pygame.draw.circle(surface, self.fill_color, (int(final_pos[0]), int(final_pos[1])), int(radius), 0)
+
+        super(CircleRenderComponent, self).update(surface, pos, pts, v_up, v_side, offset, debug)
 
         if self.outline:
-            pygame.draw.circle(surface, self.line_color, (int(pos[0] + offset[0]), int(pos[1] + offset[1])), int(self.radius), 1)
+            pygame.draw.circle(surface, self.line_color, (int(final_pos[0]), int(final_pos[1])), int(radius), 1)
 
 
 class PolygonRenderComponent(RenderComponent):
 
-    def __init__(self, owner, pts, scale=1.0, line_color=colors.BLACK, fill_color = colors.GRAY, fill=True):
+    def __init__(self, owner, pts, scale=1.0, line_color=colors.BLACK, fill_color=colors.GRAY, fill=True):
         super(PolygonRenderComponent, self).__init__(owner, pts, scale, line_color, fill_color, fill)
 
     def update(self, surface, pos, pts, v_up, v_side, offset, debug=False):
-
-        pos[0] *= game_state.ZOOM
-        pos[1] *= game_state.ZOOM
-
-        super(PolygonRenderComponent, self).update(surface, pos, pts, v_up, v_side, offset, debug)
+        final_pos = [pos[0], pos[1]]
+        final_pos[0] *= game_state.ZOOM
+        final_pos[1] *= game_state.ZOOM
+        final_pos[0] += offset[0]
+        final_pos[1] += offset[1]
 
         # extrem suboptimal
         cpy_pts = copy.deepcopy(pts)
 
         utility.scale_points(cpy_pts, game_state.ZOOM)
-        utility.translate_points(cpy_pts, pos[0] + offset[0], pos[1] + offset[1])
+        utility.translate_points(cpy_pts, final_pos[0], final_pos[1])
 
         if self.fill:
             pygame.draw.polygon(surface, self.fill_color, cpy_pts, 0)
 
         if self.outline:
             pygame.draw.polygon(surface, self.line_color, cpy_pts, 1)
+
+        super(PolygonRenderComponent, self).update(surface, pos, pts, v_up, v_side, offset, debug)
 
 
 class InputComponent(BaseComponent):

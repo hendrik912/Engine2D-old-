@@ -3,6 +3,7 @@ import math
 import utility
 import components
 
+
 def check_collision(a, b, scene):
 
     # circle circle
@@ -13,10 +14,11 @@ def check_collision(a, b, scene):
 
         # polygon circle
         if isinstance(a.render_component, components.CircleRenderComponent) or isinstance(b.render_component, components.CircleRenderComponent):
+
             if isinstance(a.render_component, components.CircleRenderComponent):
-                return circle_polygon_collision(a, b)
+                return circle_polygon_collision(a, b, scene)
             else:
-                return circle_polygon_collision(b, a)
+                return circle_polygon_collision(b, a, scene)
 
         # convex polygon convex polygon
         return sat_collision(a, b, scene)
@@ -24,24 +26,33 @@ def check_collision(a, b, scene):
     return False
 
 
-def circle_polygon_collision(circle, polygon):
+def circle_polygon_collision(circle, polygon, scene):
     # search closest vertex from p to circle center
-
     p_vecs = []
 
-    normals = get_normals(polygon.shape.rotated_points)
+    polygon_entry = scene.transformed_entity_pts[polygon.id]
+    polygon_pos = polygon_entry[0]
+    polygon_pts = polygon_entry[1]
+
+    circle_entry = scene.transformed_entity_pts[circle.id]
+    circle_pos = circle_entry[0]
+
+    normals = get_normals(polygon_pts)
     min_axis = [0, 0]
     min_overlap = None
 
+    r = circle.render_component.bounding_radius()
+
     for i in range(0, 4):
-        p_vecs.append(np.array(polygon.shape.rotated_points[i]) + polygon.pos)
+        p_vecs.append(np.array(polygon_pts[i]) + polygon_pos)
+
+    # sind die nicht schon translatiert?
 
     for i in range(0, len(normals)):
         p_proj = get_min_max_proj(p_vecs, normals[i])
 
-        r = circle.shape.get_bounding_radius()
-        min_dot = np.dot(circle.pos, normals[i])
-        max_dot = np.dot(circle.pos, normals[i])
+        min_dot = np.dot(circle_pos, normals[i])
+        max_dot = np.dot(circle_pos, normals[i])
 
         c_proj = [
             min_dot - r,
@@ -60,7 +71,7 @@ def circle_polygon_collision(circle, polygon):
             min_overlap = overlap
             min_axis = normals[i]
 
-    mtv = [min_overlap * min_axis[0], min_overlap * min_axis[1]]
+    mtv = [-min_overlap * min_axis[0], -min_overlap * min_axis[1]]
 
     return mtv
 
@@ -70,13 +81,18 @@ def circle_circle_collision(a, b, scene):
     a_pos = scene.transformed_entity_pts[a.id][0]
     b_pos = scene.transformed_entity_pts[b.id][0]
 
-    r = a.render_component.get_bounding_radius() + b.render_component.get_bounding_radius()
+    r = a.render_component.bounding_radius() + b.render_component.bounding_radius()
     dis = math.sqrt((a_pos[0] - b_pos[0]) * (a_pos[0] - b_pos[0]) + (a_pos[1] - b_pos[1]) * (a_pos[1] - b_pos[1]))
 
     if r < dis:
         return False
 
-    dv = b_pos - a_pos
+    dv = [
+        b_pos[0] - a_pos[0],
+        b_pos[1] - a_pos[1]
+    ]
+
+
     dv = utility.normalize(dv) * (r - dis)
 
     return dv
@@ -144,7 +160,7 @@ def sat_collision(a, b, scene):
         a_proj = get_min_max_proj(a_vecs, normals[i])
         b_proj = get_min_max_proj(b_vecs, normals[i])
 
-        if do_overlap(a_proj[0], a_proj[1], b_proj[0], b_proj[1]) > 0: # warum > 0 ?
+        if do_overlap(a_proj[0], a_proj[1], b_proj[0], b_proj[1]):
             return False
 
         overlap = get_overlap(a_proj[0], a_proj[1], b_proj[0], b_proj[1])
